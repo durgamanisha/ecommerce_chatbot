@@ -1,0 +1,36 @@
+{% extends 'chatbot/base.html' %}
+
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+<h2>Welcome to the E-commerce Chatbot</h2>
+<div id="chat-box"></div>
+<input type="text" id="user-input" placeholder="Type your message here...">
+<button onclick="sendMessage()">Send</button>
+<a href="{% url 'logout' %}">Logout</a>
+
+<script>
+function sendMessage() {
+    const userInput = document.getElementById('user-input').value;
+    if (userInput.trim() === '') return;
+
+    const chatBox = document.getElementById('chat-box');
+    chatBox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
+
+    fetch("{% url 'chatbot_response' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ 'message': userInput })
+    })
+    .then(response => response.json())
+    .then(data => {
+        chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.response}</p>`;
+        document.getElementById('user-input').value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+</script>
+{% endblock %}
